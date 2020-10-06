@@ -1,0 +1,35 @@
+from django.db import models
+from User.models import User
+
+class TimeSheet(models.Model):
+    created_by = models.ForeignKey(User, related_name="timesheet", on_delete=models.CASCADE)
+    project = models.CharField(max_length=100,blank=True)
+    task = models.TextField(blank=True)
+    date = models.DateTimeField(auto_now_add=False,blank=True, null=True)
+    start_time = models.CharField(max_length=10,blank=True, default='00:00')
+    end_time = models.CharField(max_length=10,blank=True, default='00:00')
+    priority = models.CharField(max_length=20,blank=True)
+    status = models.CharField(max_length=20, blank=True)
+    issue = models.TextField(blank=True)
+    approver_decision = models.CharField(max_length=20, blank=True)
+    approval_date = models.DateTimeField(auto_now_add=False,blank=True, null=True)
+    approver_reject_reason = models.TextField(blank=True)
+    approver_comment = models.TextField(blank=True)
+    admin_decision = models.CharField(max_length=20, blank=True)
+    admin_approval_date = models.DateTimeField(auto_now_add=False, blank=True, null=True)
+    admin_reject_reason = models.TextField(blank=True)
+    admin_comment = models.TextField(blank=True)
+    updated_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    opened_by = models.CharField(max_length=20, blank=True)
+    edited_by = models.CharField(max_length=20, blank=True)
+    assigned_by = models.ForeignKey(User, related_name="timesheet_manager_by1", on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(User, related_name="timesheet_employee_to1", on_delete=models.CASCADE)
+    admin = models.ForeignKey(User, related_name="timesheet_admin_id1", on_delete=models.CASCADE, null=True)
+
+class TimesheetRepporting(models.Model):
+    employee_name = models.CharField(max_length=20, blank=True)
+    employee = models.ForeignKey(User, related_name="timesheet_employee1", on_delete=models.CASCADE)
+    manager = models.ForeignKey(User, related_name="timesheet_manage1r", on_delete=models.CASCADE)
+    manager_name = models.CharField(max_length=20, blank=True)
+    admin = models.ForeignKey(User, related_name="timesheet_admin1", on_delete=models.CASCADE)
+    admin_name = models.CharField(max_length=20, blank=True)

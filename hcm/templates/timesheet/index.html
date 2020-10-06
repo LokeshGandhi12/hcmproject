@@ -1,0 +1,97 @@
+{% extends 'marketing/base.html' %}
+{% load static %}
+{% block content %}
+{{ block.super }}
+
+{% block extralinks %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<link rel="icon" type="image/png" href="{%static 'images/favicon.ico'%}"/>
+<script src="{% static 'js\jexcel.js' %}"></script>
+<script src="{% static 'js\jsuites.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/jsuites.css' %}" type="text/css" />
+<link rel="stylesheet" href="{% static 'css/jexcel.css' %}" type="text/css" />
+{% endblock extralinks %}
+
+<div class="main_container ml-3 mr-3">
+  <div class="row marl">
+    <div class="col-md-12">
+		<div class="table_container_row no_mar_top">
+            <div class="card">
+              <div class="card-body" id="alert">
+                <div class="card-title">
+                  <span><a href="{% url 'marketing:home' %}" style="font-size:18px;"><i class="fa fa-arrow-left "></i></a> Timesheet</span>
+                    <button type="button" class="btn btn-primary float-right" onclick="DataSubmit()">Save</button>
+                </div>
+                 <div class="table-responsive" style="min-height:500px;">
+                    <div id="spreadsheet"></div>
+                 </div>
+              </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block js_block %}
+<script>
+    var data = [
+    {% if timesheet_data %}
+        {% for timesheet in timesheet_data %}
+        ['{{timesheet.project}}', '{{timesheet.task}}', '{{timesheet.date|date:"Y-m-d"}}', '{{timesheet.start_time}}', '{{timesheet.end_time}}',
+        '{{timesheet.priority}}', '{{timesheet.status}}','{{timesheet.assigned_by.first_name}} {{timesheet.assigned_by.last_name}}', '{{timesheet.assigned_to.first_name}} {{timesheet.assigned_to.last_name}}',
+         '{{timesheet.issue}}', '{{timesheet.approver_decision}}', '{{timesheet.approval_date|date:"Y-m-d"}}', '{{timesheet.approver_reject_reason}}',
+         '{{timesheet.approver_comment}}', '{{timesheet.admin_decision}}', '{{timesheet.admin_approval_date|date:"Y-m-d"}}','{{timesheet.admin_reject_reason}}', '{{timesheet.admin_comment}}',
+         '{{timesheet.id}}'],
+
+        {% endfor %}
+    {% else %}
+        ['','','','','','','','','','','','','','','','']
+    {% endif %}
+];
+
+jexcel(document.getElementById('spreadsheet'), {
+    data:data,
+    columns: [
+        { type: 'text', title:'Project Name', width:150 },
+        { type: 'text', title:'Task', width:170},
+        { type: 'calendar', title:'Assign Date', width:100, options: { format:'YYYY-MM-DD'} },
+        { type: 'text', title:'Start Time', width:100},
+        { type: 'text', title:'End Time', width:100},
+        { type: 'dropdown', title:'Priority', width:130, source:[ "High", "Medium", "Loss" ] },
+        { type: 'dropdown', title:'Status', width:100, source:[ "Pending", "Completed" ] },
+        { type: 'dropdown', title:'Assigned By', width:150, source:[ {% for user in timesheet_report %}"{{user.manager.first_name}} {{user.manager.last_name}}",{% endfor %}] },
+        { type: 'dropdown', title:'Assigned To', width:150, source:[ {% for user in timesheet_report %}"{{user.employee.first_name}} {{user.employee.last_name}}",{% endfor %} ] },
+        { type: 'text', title:'Issue', width:180 },
+        { type: 'dropdown', title:'Approver Decision', width:150, source:[ "Approved", "Rejected" ] },
+        { type: 'calendar', title:'Approver Approval Date', width:180, options: { format:'YYYY-MM-DD'} },
+        { type: 'text', title:'Approver Rejection Reason', width:210},
+        { type: 'text', title:'Approver Comment', width:180 },
+        { type: 'dropdown', title:'Admin Decision', width:150, source:[ "Approved", "Rejected" ] },
+        { type: 'calendar', title:'Admin Approval Date', width:170, options: { format:'YYYY-MM-DD'} },
+        { type: 'text', title:'Admin Rejection Reason', width:200},
+        { type: 'text', title:'Admin Comment', width:200 },
+        { type: 'hidden', title:'hidden', width:10 },
+     ]
+});
+
+
+function DataSubmit() {
+var objj = JSON.stringify(data);
+alert(objj);
+$.ajax({
+               type: "POST",
+               url: "{% url 'timesheet:add_timesheet' %}",
+
+               //dataType: "json",
+                //contentType: 'application/json; charset=utf-8',
+                data:objj,
+               success: function(response) {
+                      alert(response.message);
+                }
+          });
+          }
+</script>
+{% endblock js_block %}
